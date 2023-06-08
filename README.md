@@ -55,9 +55,19 @@ Apply the configuration
 ```<language>
 kubectl apply -f postgres-config.yaml
 ```
+result
+```<language>
+configmap/postgres-config created
+```
 Confirm the configmap
 ```<language>
 kubectl get configmap
+```
+result
+```<language>
+NAME               DATA   AGE
+kube-root-ca.crt   1      5m7s
+postgres-config    3      53s
 ```
 Create postgres-pvc-pv.yaml (for persistent storage volume and persistent volume claim)
 ```<language>
@@ -95,9 +105,19 @@ Create and apply persistent storage volume and persistent volume claim
 ```<language>
 kubectl apply -f postgres-pvc-pv.yaml
 ```
+result
+```<language>
+persistentvolume/postgres-pv-volume created
+persistentvolumeclaim/postgres-pv-claim created
+```
 Check the pvc is bound
 ```<language>
 kubectl get pvc
+```
+result
+```<language>
+NAME                STATUS   VOLUME               CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+postgres-pv-claim   Bound    postgres-pv-volume   5Gi        RWX            manual         71s
 ```
 Create postgres-deployment.yaml (for deployment)
 ```<language>
@@ -136,6 +156,10 @@ Check if your deployments and the children objects, such as pods, are created su
 ```<language>
 kubectl apply -f postgres-deployment.yaml
 ```
+result
+```<language>
+deployment.apps/customer-management-db created
+```
 Create postgres-service.yaml (for expose ports in various ways)
 ```<language>
 apiVersion: v1
@@ -155,10 +179,11 @@ Create and apply ports
 ```<language>
 kubectl apply -f postgres-service.yaml
 ```
-Check all objects
+result
 ```<language>
-kubectl get all
+service/customer-management-db created
 ```
+
 Connect to database, modify database (create schema, tabel, insert data)
 ```<language>
 kubectl exec -it [pod-name] --  psql -h localhost -U admin --password -p 5432 postgresdb
@@ -186,9 +211,15 @@ status varchar(10)
 ```
 
 **Deploy Spring Boot App with Kubernetes**
+
 Show list of deployment services, cluster ip and external ip
 ```<language>
-kubectl get services customer-management-service
+kubectl get services customer-management-db
+```
+result
+```<language>
+NAME                     TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+customer-management-db   NodePort   10.107.130.243   <none>        5432:31104/TCP   93s
 ```
 Change spring.datasource.url into cluster ip of the database on application.properties
 ![app-properties](assets/app-properties.png)
@@ -241,10 +272,21 @@ Create and apply configuration, deploy the service
 ```<language>
 kubectl apply -f springboot-deploy.yaml
 ```
-
+result
+```<language>
+service/customer-management-service created
+deployment.apps/customer-management-service created
+```
 Show port and pod
 ```<language>
 kubectl get pod -o wide
+```
+result
+```<language>
+NAME                                           READY   STATUS              RESTARTS   AGE   IP           NODE             NOMINATED NODE   READINESS GATES
+customer-management-db-5bf7fcd76-hgwj7         1/1     Running             0          6m    10.1.0.110   docker-desktop   <none>           <none>
+customer-management-service-57cc8d9d59-hr8l7   0/1     ContainerCreating   0          21s   <none>       docker-desktop   <none>           <none>
+customer-management-service-57cc8d9d59-xxw7t   0/1     ContainerCreating   0          21s   <none>       docker-desktop   <none>           <none>
 ```
 Show logs
 ```<language>
